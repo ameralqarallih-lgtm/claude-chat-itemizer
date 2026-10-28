@@ -72,7 +72,8 @@ export function SubmitDialog({ snap, itemIds, onClose, onSubmitted }: { snap: Sn
   }
 
   const needsSession = mode !== 'newConversationPerItem' && !prefill;
-  const canSubmit = !busy && n > 0 && (prefill || (snap.bridge.kind !== 'notSetUp' || connected.length > 0)) && !(needsSession && target !== 'newTab' && !connected.some(s => s.sessionId === target));
+  const reachable = (id: string) => connected.some(s => s.sessionId === id) || snap.recentChats.some(c => c.sessionId === id);
+  const canSubmit = !busy && n > 0 && (prefill || (snap.bridge.kind !== 'notSetUp' || connected.length > 0)) && !(needsSession && target !== 'newTab' && !reachable(target));
 
   const submit = async () => {
     setBusy(true);
@@ -96,6 +97,15 @@ export function SubmitDialog({ snap, itemIds, onClose, onSubmitted }: { snap: Sn
           {sessionLabel(s, snap.catalog)}
         </option>
       ))}
+      {snap.recentChats.length > 0 && (
+        <optgroup label="Earlier chats (reopen)">
+          {snap.recentChats.map(c => (
+            <option key={c.sessionId} value={c.sessionId}>
+              {`${c.title ?? c.firstPrompt ?? 'Untitled chat'} · not open`}
+            </option>
+          ))}
+        </optgroup>
+      )}
       {snap.bridge.kind !== 'notSetUp' && <option value="newTab">A new Claude tab</option>}
       <option value="prefill">Prefill a new Claude tab (text only)</option>
     </select>

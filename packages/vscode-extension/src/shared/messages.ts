@@ -62,9 +62,19 @@ export interface RunView {
   items: RunItemView[];
 }
 
+/** An earlier Claude chat of this workspace that is not running now; sending to it reopens it. */
+export interface RecentChat {
+  sessionId: string;
+  title?: string;
+  firstPrompt?: string;
+  lastUsedAt: number;
+}
+
 export interface Snapshot {
   state: ItemizerState;
   sessions: SessionView[];
+  /** Earlier chats of this workspace, newest first, not counting the live ones. */
+  recentChats: RecentChat[];
   bridge: BridgeStatus;
   runs: RunView[];
   catalog: ModelInfo[];
@@ -105,6 +115,7 @@ export type Op =
   | { op: 'attachment.remove'; itemId: string; attachmentId: string }
   | { op: 'attachment.open'; itemId: string; attachmentId: string }
   | { op: 'editor.open'; target: EditorTarget }
+  | { op: 'editor.close' }
   | { op: 'run.start'; itemIds: string[]; mode: SubmitMode; target: RunTarget; options: RunOptions }
   | { op: 'run.quick'; itemIds: string[] }
   | { op: 'run.cancel'; runId: string; abortCurrent: boolean }

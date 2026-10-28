@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 
 import { AttachmentStore } from './attachments';
+import { ChatHistory } from './bridge/history';
 import { HostHeartbeat } from './bridge/host';
 import { refreshInstalledPlugin, removeBridge } from './bridge/installer';
 import { SessionRegistry } from './bridge/sessions';
@@ -27,16 +28,19 @@ export function activate(context: vscode.ExtensionContext): ItemizerInternals {
   const attachments = new AttachmentStore(context.storageUri);
   const heartbeat = new HostHeartbeat(log);
   const sessions = new SessionRegistry();
-  const runs = new RunCoordinator(context.workspaceState, store, attachments, sessions, heartbeat.hostId, log);
-  const controller = new Controller(context, store, attachments, sessions, runs, log);
+  const history = new ChatHistory();
+  const runs = new RunCoordinator(context.workspaceState, store, attachments, sessions, history, heartbeat.hostId, log);
+  const controller = new Controller(context, store, attachments, sessions, runs, history, log);
   const sidebar = new SidebarProvider(context.extensionUri, attachments, controller);
   const editor = new EditorPanel(context.extensionUri, attachments, controller, store);
   controller.openEditor = target => editor.open(target);
+  controller.closeEditor = () => editor.close();
   controller.showSubmitDialog = itemIds =>
     void sidebar.reveal().then(webview => webview && controller.post(webview, { type: 'openSubmit', itemIds }));
 
   heartbeat.start();
   sessions.start();
+  history.start();
   runs.start();
 
   const command = (id: string, fn: () => unknown) => vscode.commands.registerCommand(id, fn);
@@ -51,6 +55,7 @@ export function activate(context: vscode.ExtensionContext): ItemizerInternals {
     store,
     heartbeat,
     sessions,
+    history,
     runs,
     controller,
     vscode.window.registerWebviewViewProvider('claudeItemizer.sidebar', sidebar, { webviewOptions: { retainContextWhenHidden: true } }),

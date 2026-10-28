@@ -6,6 +6,7 @@ import { type ModelInfo, MODEL_CATALOG, PLUGIN_VERSION } from '../../bridge-plug
 import type { AttachmentStore } from './attachments';
 import { type BridgeSetup, setUpBridge, setupState } from './bridge/installer';
 import { bridgeRoot } from './bridge/host';
+import type { ChatHistory } from './bridge/history';
 import type { SessionRegistry } from './bridge/sessions';
 import { exportItems, importItems } from './io';
 import { type RunCoordinator, UserError } from './run/coordinator';
@@ -40,6 +41,8 @@ export class Controller implements vscode.Disposable {
   private pending: NodeJS.Timeout | undefined;
   /** Opens or reveals the editor panel; set by extension.ts. */
   openEditor: (target: EditorTarget) => void = () => undefined;
+  /** Closes the editor panel; set by extension.ts. */
+  closeEditor: () => void = () => undefined;
   /** Asks the sidebar to open its submit dialog; set by extension.ts. */
   showSubmitDialog: (itemIds: string[]) => void = () => undefined;
 
@@ -49,12 +52,14 @@ export class Controller implements vscode.Disposable {
     private readonly attachments: AttachmentStore,
     private readonly sessions: SessionRegistry,
     private readonly runs: RunCoordinator,
+    private readonly history: ChatHistory,
     private readonly log: (s: string) => void,
   ) {
     const refresh = () => this.broadcastSoon();
     this.disposables.push(
       store.onDidChange(refresh),
       sessions.onDidChange(refresh),
+      history.onDidChange(refresh),
       runs.onDidChange(refresh),
       vscode.workspace.onDidChangeConfiguration(e => {
         if (e.affectsConfiguration('claudeCode.environmentVariables') || e.affectsConfiguration('claudeItemizer')) void this.refreshSetup();
@@ -72,7 +77,15 @@ export class Controller implements vscode.Disposable {
   }
 
   setEditorTarget(t: EditorTarget | undefined): void {
+    const previous = this.editorTarget;
     this.editorTarget = t;
+    // A new item left with nothing in it is not kept.
+    if (previous?.kind === 'item' && !(t?.kind === 'item' && t.id === previous.id)) {
+      const item = this.store.state.items[previous.id];
+      if (item && !item.title.trim() && !item.text.trim() && item.attachments.length === 0) {
+        this.store.update(st => deleteItems(st, [previous.id]));
+      }
+    }
     this.broadcastSoon();
   }
 
@@ -142,7 +155,8 @@ export class Controller implements vscode.Disposable {
     }
     return {
       state,
-      sessions: this.sessions.list(),
+      sessions: this.sessions.list().map(s => (s.title ? s : { ...s, title: this.history.get(s.sessionId)?.title })),
+      recentChats: this.history.list().filter(c => !this.sessions.get(c.sessionId)),
       bridge: this.bridgeStatus(),
       runs: this.runs.views(),
       catalog: this.catalog(),
@@ -156,7 +170,7 @@ export class Controller implements vscode.Disposable {
 
   private resolvedTarget(): string | undefined {
     const picked = this.store.state.view.targetSessionId;
-    if (picked) return this.sessions.targetable().some(s => s.sessionId === picked) ? picked : undefined;
+    if (picked) return this.sessions.targetable().some(s => s.sessionId === picked) || this.history.get(picked) ? picked : undefined;
     return this.sessions.mostRecentlyActive()?.sessionId;
   }
 
@@ -273,6 +287,9 @@ export class Controller implements vscode.Disposable {
       }
       case 'editor.open':
         this.openEditor(op.target);
+        return undefined;
+      case 'editor.close':
+        this.closeEditor();
         return undefined;
       case 'run.start':
         return this.runs.submit(op.itemIds, op.mode, op.target, op.options);

@@ -17,6 +17,47 @@ import { readAsBase64, send } from './api';
 import { Icon } from './icons';
 import { DELIVERY_LABELS, EFFORT_LABELS, POLICY_LABELS, effortSupportedBy, formatSize, modelLabel, timeAgo } from './labels';
 
+/** Every draft field registers its flush here, so Save and Ctrl+S write what is typed at once. */
+const flushers = new Set<() => void>();
+function flushAll(): void {
+  for (const f of flushers) f();
+}
+
+function useSaveShortcut(): boolean {
+  const [saved, setSaved] = useState(false);
+  useEffect(() => {
+    let timer: number | undefined;
+    const onKey = (ev: KeyboardEvent) => {
+      if ((ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === 's') {
+        ev.preventDefault();
+        flushAll();
+        setSaved(true);
+        window.clearTimeout(timer);
+        timer = window.setTimeout(() => setSaved(false), 1500);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      window.clearTimeout(timer);
+    };
+  }, []);
+  return saved;
+}
+
+function saveAndClose(): void {
+  flushAll();
+  send({ op: 'editor.close' });
+}
+
+function SavedNote({ show }: { show: boolean }) {
+  return show ? (
+    <span className="saved-note" role="status">
+      <Icon name="check" size={12} /> Saved
+    </span>
+  ) : null;
+}
+
 export function Editor({ snap }: { snap: Snapshot }) {
   const t = snap.editorTarget;
   if (t?.kind === 'item' && snap.state.items[t.id]) return <ItemEditor key={t.id} snap={snap} item={snap.state.items[t.id]!} />;
@@ -47,16 +88,31 @@ function useDraft(value: string, save: (v: string) => void, delay = 300) {
       save(v);
     }, delay);
   };
+  const latest = useRef(draft);
+  latest.current = draft;
+  const saveRef = useRef(save);
+  saveRef.current = save;
   const flush = () => {
     if (!dirty.current) return;
     window.clearTimeout(timer.current);
     dirty.current = false;
-    save(draft);
+    saveRef.current(latest.current);
   };
+  const flushRef = useRef(flush);
+  flushRef.current = flush;
+  useEffect(() => {
+    const f = () => flushRef.current();
+    flushers.add(f);
+    return () => {
+      f(); // leaving the item: keep what was typed
+      flushers.delete(f);
+    };
+  }, []);
   return [draft, change, flush] as const;
 }
 
 function ItemEditor({ snap, item }: { snap: Snapshot; item: ChatItem }) {
+  const saved = useSaveShortcut();
   const [title, setTitle, flushTitle] = useDraft(item.title, v => send({ op: 'item.update', id: item.id, patch: { title: v } }));
   const [text, setText, flushText] = useDraft(item.text, v => send({ op: 'item.update', id: item.id, patch: { text: v } }));
   const [dragOver, setDragOver] = useState(false);
@@ -194,9 +250,13 @@ function ItemEditor({ snap, item }: { snap: Snapshot; item: ChatItem }) {
         <button className="button" onClick={() => send({ op: 'ui.openSubmit', itemIds: [item.id] })}>
           Submit…
         </button>
-        <span className="spacer" />
         <button className="button secondary" onClick={() => send({ op: 'item.duplicate', ids: [item.id] })}>
           <Icon name="copy" size={13} /> Duplicate
+        </button>
+        <span className="spacer" />
+        <SavedNote show={saved} />
+        <button className="button secondary" onClick={saveAndClose} title="Save your changes and close the editor (Ctrl+S saves without closing)">
+          <Icon name="check" size={13} /> Save and close
         </button>
       </div>
     </div>
@@ -224,6 +284,7 @@ function AttachmentChip({ a, thumb, itemId }: { a: Attachment; thumb?: string; i
 }
 
 function CategoryEditor({ snap, id }: { snap: Snapshot; id: string }) {
+  const saved = useSaveShortcut();
   const cat = snap.state.categories[id]!;
   const [name, setName, flushName] = useDraft(cat.name, v => send({ op: 'category.update', id, patch: { name: v } }));
   // A category's own layer: what it sets, over the defaults.
@@ -268,8 +329,13 @@ function CategoryEditor({ snap, id }: { snap: Snapshot; id: string }) {
         <SettingsTable snap={snap} eff={eff} scope="category" onSet={(key, value) => send({ op: 'category.setSetting', id, key, value })} />
       </div>
       <div className="editor-actions">
-        <button className="button" onClick={() => send({ op: 'item.create', categoryId: id })}>
+        <button className="button secondary" onClick={() => send({ op: 'item.create', categoryId: id })}>
           <Icon name="plus" size={13} /> New item in {cat.name}
+        </button>
+        <span className="spacer" />
+        <SavedNote show={saved} />
+        <button className="button" onClick={saveAndClose}>
+          <Icon name="check" size={13} /> Save and close
         </button>
       </div>
     </div>
@@ -292,6 +358,10 @@ function DefaultsEditor({ snap }: { snap: Snapshot }) {
         </button>
         <button className="button secondary" onClick={() => send({ op: 'io.import' })}>
           Import items…
+        </button>
+        <span className="spacer" />
+        <button className="button" onClick={saveAndClose} title="Defaults save as you change them">
+          Close
         </button>
       </div>
     </div>

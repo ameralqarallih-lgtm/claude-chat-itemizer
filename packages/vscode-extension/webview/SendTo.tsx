@@ -3,7 +3,7 @@ import { type KeyboardEvent, useEffect, useRef, useState } from 'react';
 import type { SessionView, Snapshot } from '../src/shared/messages';
 import { send } from './api';
 import { Icon } from './icons';
-import { sessionMeta, sessionName } from './labels';
+import { sessionMeta, sessionName, timeAgo } from './labels';
 
 const AUTO = '__auto__';
 
@@ -12,6 +12,8 @@ interface Choice {
   name: string;
   meta?: string;
   live: boolean;
+  /** Starts a group: the heading drawn above this choice. */
+  group?: string;
 }
 
 /** Which Claude chat Quick, the item bolts and Submit… send to. A listbox, so long chat names wrap. */
@@ -23,13 +25,27 @@ export function SendTo({ snap }: { snap: Snapshot }) {
 
   const chats = snap.sessions.filter(s => s.isCompatible && s.hasTab);
   const picked = snap.state.view.targetSessionId;
-  const pickedGone = !!picked && !chats.some(s => s.sessionId === picked);
+  const pickedGone = !!picked && !chats.some(s => s.sessionId === picked) && !snap.recentChats.some(c => c.sessionId === picked);
   const auto = chats.find(s => s.sessionId === snap.resolvedTargetId);
 
-  const toChoice = (s: SessionView): Choice => ({ value: s.sessionId, name: sessionName(s), meta: sessionMeta(s, snap.catalog), live: s.state === 'busy' });
+  const toChoice = (s: SessionView, i: number): Choice => ({
+    value: s.sessionId,
+    name: sessionName(s),
+    meta: sessionMeta(s, snap.catalog),
+    live: s.state === 'busy',
+    group: i === 0 ? 'Open chats' : undefined,
+  });
+  const earlier = snap.recentChats.map((c, i): Choice => ({
+    value: c.sessionId,
+    name: c.title ?? (c.firstPrompt ? `“${c.firstPrompt}”` : 'Untitled chat'),
+    meta: `Not open · reopens when you send · ${timeAgo(c.lastUsedAt)}`,
+    live: false,
+    group: i === 0 ? 'Earlier chats' : undefined,
+  }));
   const choices: Choice[] = [
     { value: AUTO, name: 'Most recently used chat', meta: !picked && auto ? `Now: ${sessionName(auto)}` : chats.length ? undefined : 'No chat connected yet', live: false },
     ...chats.map(toChoice),
+    ...earlier,
     ...(pickedGone ? [{ value: picked, name: 'Closed chat', meta: 'Pick another one', live: false }] : []),
   ];
   const current = picked ?? AUTO;
@@ -107,7 +123,12 @@ export function SendTo({ snap }: { snap: Snapshot }) {
         </button>
         {open && (
           <ul className="picker-list" role="listbox" aria-labelledby="send-to-label" ref={list}>
-            {choices.map((c, i) => (
+            {choices.map((c, i) => [
+              c.group && (
+                <li key={`g-${c.group}`} className="picker-group" role="presentation">
+                  {c.group}
+                </li>
+              ),
               <li
                 key={c.value}
                 id={`send-to-opt-${i}`}
@@ -121,13 +142,13 @@ export function SendTo({ snap }: { snap: Snapshot }) {
               >
                 <ChoiceText choice={c} />
                 {c.value === current && <Icon name="check" size={13} className="picker-check" />}
-              </li>
-            ))}
+              </li>,
+            ])}
           </ul>
         )}
       </div>
       {pickedGone && <p className="send-to-note problem">That chat is closed. Pick another one.</p>}
-      {!pickedGone && chats.length === 0 && <p className="send-to-note">No Claude chat in this folder is connected. Open a new Claude tab.</p>}
+      {!pickedGone && chats.length === 0 && snap.recentChats.length === 0 && <p className="send-to-note">No Claude chat in this folder is connected. Open a new Claude tab.</p>}
     </div>
   );
 }

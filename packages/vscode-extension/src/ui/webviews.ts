@@ -114,6 +114,10 @@ export class EditorPanel {
     this.retitle();
   }
 
+  close(): void {
+    this.panel?.dispose();
+  }
+
   private retitle(): void {
     if (!this.panel) return;
     const t = this.controller.currentEditorTarget;

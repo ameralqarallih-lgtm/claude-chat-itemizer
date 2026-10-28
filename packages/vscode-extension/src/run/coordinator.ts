@@ -16,6 +16,7 @@ import {
 import type { AttachmentStore } from '../attachments';
 import { exists, readJson, remove, writeJsonAtomic } from '../bridge/fsutil';
 import { type NativePaths, nativePaths } from '../bridge/host';
+import type { ChatHistory } from '../bridge/history';
 import type { SessionRegistry } from '../bridge/sessions';
 import type { RunOptions, RunTarget, RunView } from '../shared/messages';
 import {
@@ -77,6 +78,7 @@ export class RunCoordinator implements vscode.Disposable {
     private readonly store: Store,
     private readonly attachments: AttachmentStore,
     private readonly sessions: SessionRegistry,
+    private readonly history: ChatHistory,
     private readonly hostId: string,
     private readonly log: (s: string) => void,
   ) {
@@ -132,15 +134,16 @@ export class RunCoordinator implements vscode.Disposable {
     let sessionId: string | undefined;
     if (mode !== 'newConversationPerItem' && target.kind !== 'newTab') {
       const picked = this.store.state.view.targetSessionId;
-      if (target.kind === 'active' && picked && !this.sessions.targetable().some(x => x.sessionId === picked)) {
-        throw new UserError('The chat picked in “Send to” is closed. Pick another chat there, or choose “Most recently used chat”.', 'targetGone');
+      const wanted = target.kind === 'session' ? target.sessionId : picked;
+      let s = wanted ? this.sessions.targetable().find(x => x.sessionId === wanted) : this.sessions.mostRecentlyActive();
+      if (!s && wanted && this.history.get(wanted)) {
+        // An earlier chat that is not running: reopen it, then send.
+        const reopened = await this.reopen(wanted);
+        s = this.sessions.targetable().find(x => x.sessionId === reopened);
       }
-      const s =
-        target.kind === 'session'
-          ? this.sessions.targetable().find(x => x.sessionId === target.sessionId)
-          : picked
-            ? this.sessions.targetable().find(x => x.sessionId === picked)
-            : this.sessions.mostRecentlyActive();
+      if (!s && target.kind === 'active' && picked) {
+        throw new UserError('The chat picked in “Send to” is closed and could not be reopened. Pick another chat there, or choose “Most recently used chat”.', 'targetGone');
+      }
       if (!s) {
         throw new UserError(
           target.kind === 'active' ? 'No Claude chat in this workspace is connected to the bridge.' : 'That Claude chat is no longer connected.',
@@ -272,6 +275,35 @@ export class RunCoordinator implements vscode.Disposable {
 
   private inFlight(run: RunRecord): number {
     return run.parts.filter(p => p.phase === 'launching' || p.phase === 'claimable' || p.phase === 'delivered').length;
+  }
+
+  /**
+   * Opens an earlier chat in a Claude tab and waits for its session to report
+   * in. Resolves the session id it runs under: the same one when Claude Code
+   * resumes in place, else the new session that carries its history.
+   */
+  private async reopen(sessionId: string): Promise<string> {
+    const chat = this.history.get(sessionId);
+    await this.sessions.refresh();
+    const known = new Set(this.sessions.targetable().map(s => s.sessionId));
+    const t0 = Date.now();
+    this.log(`reopening chat ${sessionId}`);
+    await vscode.commands.executeCommand('claude-vscode.editor.open', sessionId).then(undefined, err => {
+      throw new UserError(`Could not open that chat in Claude: ${String(err)}`);
+    });
+    const timeoutMs = 1000 * vscode.workspace.getConfiguration('claudeItemizer').get<number>('newConversation.timeoutSeconds', 25);
+    while (Date.now() - t0 < timeoutMs) {
+      await sleep(1_000);
+      await this.sessions.refresh();
+      const live = this.sessions.targetable();
+      const same = live.find(s => s.sessionId === sessionId);
+      if (same) return same.sessionId;
+      const resumed = live.find(
+        s => !known.has(s.sessionId) && s.turns > 0 && !!chat?.firstPrompt && s.firstPrompt === chat.firstPrompt,
+      );
+      if (resumed) return resumed.sessionId;
+    }
+    throw new UserError('The chat opened in Claude but did not connect to the bridge in time. Send again once its tab has loaded.', 'targetGone');
   }
 
   /** Opens a new Claude tab and waits for its session to report in. */

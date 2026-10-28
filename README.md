@@ -36,7 +36,7 @@
 | **Categories** | Group items, color them, give a whole category its own settings. Drag items to reorder them or move them between categories. |
 | **Attachments** | Add files with a picker, drag them in, or press **Ctrl+V** to paste a screenshot, copied files or text. |
 | **Per-item settings** | Model, effort, tool policy and hidden instructions, each inherited from the defaults or the category unless the item sets its own. |
-| **Send to** | Pick which open Claude chat receives your items, or let it follow the chat you used last. |
+| **Send to** | Pick which Claude chat receives your items: an open one, or an earlier chat of this project, which is reopened for you. Or let it follow the chat you used last. |
 | **Three ways to send** | One conversation in order, a new conversation per item, or every item in one message. **Quick** sends with the chat's own settings, no questions asked. |
 | **Run history** | Every submission, grouped into Running, Today, Yesterday and Earlier, with each item's status, the model that answered and a preview of the reply. |
 | **Export / import** | Move your items, with their attachments, between machines or workspaces as one JSON file. |
@@ -58,9 +58,9 @@ The Itemizer has two parts, and you install both:
 
 ### 1. Install the VS Code extension
 
-1. Download `claude-chat-itemizer-0.3.1.vsix` from the [latest release](https://github.com/ameralqarallih-lgtm/claude-chat-itemizer/releases/latest).
+1. Download `claude-chat-itemizer-0.4.0.vsix` from the [latest release](https://github.com/ameralqarallih-lgtm/claude-chat-itemizer/releases/latest).
 2. Install it, either:
-   - from the command line: `code --install-extension claude-chat-itemizer-0.3.1.vsix`
+   - from the command line: `code --install-extension claude-chat-itemizer-0.4.0.vsix`
    - or in VS Code: **Extensions** view → **⋯** menu → **Install from VSIX…** → pick the file.
 3. Reload VS Code if it asks. A **Chat Itemizer** icon appears in the activity bar.
 
@@ -101,7 +101,7 @@ Install the new VSIX the same way. When the bridge is already set up, the extens
 ### Write chat items
 
 - **New item:** the **＋** in the view's title bar, or the **＋** that appears when you hover over a category header. The editor opens next to your code.
-- **In the editor:** give the item a title (optional, shown in the list) and a prompt. Changes save as you type.
+- **In the editor:** give the item a title (optional, shown in the list) and a prompt. Changes save as you type; **Ctrl+S** saves at once, and **Save and close** saves and closes the editor. A new item closed while still empty is discarded.
 - **In the list:** each item shows its title, the first line of its prompt, and small labels for its model, effort, attachment count and tool policy.
   - **Plain labels:** the value comes from the defaults.
   - **Dashed labels:** the value comes from the category.
@@ -129,7 +129,9 @@ Attachments are stored as copies in the workspace's private VS Code storage, so 
 
 ### Choose where items go
 
-**Send to**, at the top of the sidebar, lists the Claude chats open in this window's folder. Each shows its title, whether it's working or idle, its model, and when it was last used.
+**Send to**, at the top of the sidebar, lists:
+- **Open chats:** the Claude chats running in this window's folder, each with its title, whether it's working or idle, its model, and when it was last used.
+- **Earlier chats:** this project's previous Claude conversations from the last 30 days, read from Claude Code's transcripts. Picking one reopens it in a Claude tab when you send, then delivers your items once it connects. That includes tabs VS Code restored after a reload but hasn't started yet.
 
 - **Most recently used chat** (the default) follows whichever chat you used last.
 - **Pick a specific chat** to pin it. The choice is remembered for this workspace. If that chat is closed, sending stops with a message, so items never go to a different chat by surprise.

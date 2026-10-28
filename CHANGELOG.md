@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.4.0 (2026-10-28)
+
+### Added
+- **Earlier chats in Send to.** Besides the chats running now, Send to and the Submit dialog list this project's earlier Claude chats, read from Claude Code's transcripts, with their titles. Picking one reopens it in a Claude tab and sends your items once it connects. This covers closed tabs and tabs VS Code restored after a reload that have not started yet.
+- **Save and close** in the item and category editors (and **Close** for defaults). Ctrl+S saves without closing.
+- Open chats show their Claude Code title as soon as the extension sees it, without waiting for the next prompt.
+
+### Changed
+- A new item closed with no title, prompt or attachments is discarded.
+
 ## 0.3.1 (2026-10-28)
 
 ### Fixed
