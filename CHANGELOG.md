@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.1 (2026-10-28)
+
+### Fixed
+- A long reply preview in an expanded run no longer makes the sidebar wider than its panel. Previews are cut to one line with an ellipsis.
+
+### Docs
+- README screenshots now show a real-world workspace: the sidebar, the item editor and the submit dialog.
+
 ## 0.3.0 (2026-10-28)
 
 First public release.

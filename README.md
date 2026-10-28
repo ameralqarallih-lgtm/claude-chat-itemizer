@@ -7,7 +7,16 @@
 ![VS Code](https://img.shields.io/badge/VS%20Code-1.90%2B-007ACC)
 ![Claude Code](https://img.shields.io/badge/Claude%20Code-2.1.311%2B-D97757)
 
-<img src="docs/images/sidebar-send-to.png" alt="The Chat Itemizer sidebar: a Send to picker listing open Claude chats, Quick and Submit buttons, and a category with one chat item showing its model, attachment and sent labels" width="420">
+<table>
+  <tr>
+    <td width="36%" valign="top"><img src="docs/images/sidebar.png" alt="The Chat Itemizer sidebar: Send to set to the most recently used chat, Quick and Submit buttons, a Runs history with a finished two-item run expanded, and items in three categories (Auth refactor, UI bugs, Docs) with model, effort, attachment, read-only and sent labels"></td>
+    <td width="64%" valign="top"><img src="docs/images/item-editor.png" alt="The item editor for “Sidebar overflows at 320px”: title, prompt, a screenshot and a CSS file attached, and chat settings with the model overridden to Sonnet and the rest inherited from the defaults"></td>
+  </tr>
+  <tr>
+    <td align="center"><sub>The sidebar: where items go, past runs, and the items themselves</sub></td>
+    <td align="center"><sub>An item with two attachments and its own model</sub></td>
+  </tr>
+</table>
 
 - [What it does](#what-it-does)
 - [Requirements](#requirements)
@@ -49,9 +58,9 @@ The Itemizer has two parts, and you install both:
 
 ### 1. Install the VS Code extension
 
-1. Download `claude-chat-itemizer-0.3.0.vsix` from the [latest release](https://github.com/ameralqarallih-lgtm/claude-chat-itemizer/releases/latest).
+1. Download `claude-chat-itemizer-0.3.1.vsix` from the [latest release](https://github.com/ameralqarallih-lgtm/claude-chat-itemizer/releases/latest).
 2. Install it, either:
-   - from the command line: `code --install-extension claude-chat-itemizer-0.3.0.vsix`
+   - from the command line: `code --install-extension claude-chat-itemizer-0.3.1.vsix`
    - or in VS Code: **Extensions** view → **⋯** menu → **Install from VSIX…** → pick the file.
 3. Reload VS Code if it asks. A **Chat Itemizer** icon appears in the activity bar.
 
@@ -132,6 +141,8 @@ Tick the items you want, then:
 
 - **⚡ Quick** sends them to the **Send to** chat, in list order, using **that chat's** current model and effort. Item settings are ignored; attachments are still sent. The ⚡ on a single item does the same for that item.
 - **Submit…** opens a dialog:
+
+<img src="docs/images/submit-dialog.png" alt="The Submit dialog for two items: one conversation in order is selected, sent to the Auth module refactor chat, with options to stop on failure, send titles as headings and hide sent items, and notes about a read-only item, mixed models and an image attachment" width="460">
 
 | Mode | What happens |
 | --- | --- |
