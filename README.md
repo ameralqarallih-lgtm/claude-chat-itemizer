@@ -284,8 +284,12 @@ Releases are published on GitHub, each with the VSIX attached. The [changelog](C
 To cut a release:
 1. Bump `version` in `packages/vscode-extension/package.json`, `packages/bridge-plugin/.claude-plugin/plugin.json` and `PLUGIN_VERSION` in `packages/bridge-plugin/hooks/protocol.ts`.
 2. Add a `CHANGELOG.md` entry.
-3. Run `npm test && npm run package`.
-4. Tag `vX.Y.Z` and attach `claude-chat-itemizer.vsix`, renamed to `claude-chat-itemizer-X.Y.Z.vsix`, to the GitHub release.
+3. Run `npm test`, then commit.
+4. Run `pwsh scripts/release.ps1`. It needs the [GitHub CLI](https://cli.github.com/), signed in. The script:
+   - builds `claude-chat-itemizer-X.Y.Z.vsix`;
+   - tags `vX.Y.Z`;
+   - pushes `main` and the tag to both Azure DevOps and GitHub;
+   - creates the GitHub release with the VSIX attached and this version's changelog entry as its notes.
 
 > **Note:** the bridge uses Claude Code's plugin hooks API, which is early access and can change between Claude Code releases. If a Claude Code update breaks the bridge, check for a newer release here.
 
