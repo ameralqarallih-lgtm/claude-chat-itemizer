@@ -1,0 +1,21 @@
+{
+  // The options the plugin-authoring types file recommends for a hooks module,
+  // pointed at the vendored copy of this build's API in typings/.
+  // Regenerate typings/claude-code.d.ts when Claude Code updates.
+  "compilerOptions": {
+    "target": "es2023",
+    "lib": ["es2023"],
+    "types": [],
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "jsx": "react",
+    "jsxFactory": "h",
+    "jsxFragmentFactory": "Fragment"
+  },
+  "include": ["typings", "hooks", "tests"]
+}

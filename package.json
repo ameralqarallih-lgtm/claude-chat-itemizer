@@ -1,0 +1,22 @@
+{
+  "name": "claude-chat-itemizer-repo",
+  "private": true,
+  "workspaces": [
+    "packages/bridge-plugin",
+    "packages/vscode-extension"
+  ],
+  "scripts": {
+    "build": "npm run build -w packages/vscode-extension",
+    "watch": "npm run watch -w packages/vscode-extension",
+    "typecheck": "npm run typecheck -w packages/bridge-plugin && npm run typecheck -w packages/vscode-extension",
+    "test": "vitest run",
+    "test:plugin": "npm run test:engine -w packages/bridge-plugin",
+    "validate:plugin": "npm run validate -w packages/bridge-plugin",
+    "package": "npm run package -w packages/vscode-extension"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}

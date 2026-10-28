@@ -1,0 +1,16 @@
+{
+  "name": "claude-chat-itemizer",
+  "owner": {
+    "name": "Amer Alqarallih"
+  },
+  "metadata": {
+    "description": "Claude Chat Itemizer: queue chat items in VS Code and send them into Claude Code chats."
+  },
+  "plugins": [
+    {
+      "name": "itemizer-bridge",
+      "source": "./packages/bridge-plugin",
+      "description": "Sends chat items from the Claude Chat Itemizer VS Code extension into this Claude session, with per-item model, effort and attachments."
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "name": "itemizer-bridge",
+  "version": "0.3.0",
+  "private": true,
+  "description": "Claude Code plugin half of Claude Chat Itemizer. Claude Code loads hooks/register.ts directly; nothing here is built.",
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "validate": "node ../../scripts/claude.mjs plugin validate .",
+    "test:engine": "node ../../scripts/claude.mjs plugin test ."
+  }
+}

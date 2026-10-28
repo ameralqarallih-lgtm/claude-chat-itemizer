@@ -1,0 +1,233 @@
+{
+  "name": "claude-chat-itemizer",
+  "displayName": "Claude Chat Itemizer",
+  "description": "Prepare chat items with their own attachments, model and effort, organize them, and send them into the Claude Code chat.",
+  "version": "0.3.0",
+  "publisher": "claude-chat-itemizer",
+  "private": true,
+  "license": "MIT",
+  "repository": { "type": "git", "url": "https://github.com/ameralqarallih-lgtm/claude-chat-itemizer.git" },
+  "homepage": "https://github.com/ameralqarallih-lgtm/claude-chat-itemizer#readme",
+  "bugs": { "url": "https://github.com/ameralqarallih-lgtm/claude-chat-itemizer/issues" },
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "extensionKind": [
+    "workspace"
+  ],
+  "main": "./dist/extension.js",
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "claudeItemizer",
+          "title": "Chat Itemizer",
+          "icon": "media/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "claudeItemizer": [
+        {
+          "type": "webview",
+          "id": "claudeItemizer.sidebar",
+          "name": "Chat Items"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "claudeItemizer.newItem",
+        "title": "New Chat Item",
+        "category": "Chat Itemizer",
+        "icon": "$(add)"
+      },
+      {
+        "command": "claudeItemizer.newCategory",
+        "title": "New Category",
+        "category": "Chat Itemizer",
+        "icon": "$(new-folder)"
+      },
+      {
+        "command": "claudeItemizer.editDefaults",
+        "title": "Edit Defaults",
+        "category": "Chat Itemizer",
+        "icon": "$(settings-gear)"
+      },
+      {
+        "command": "claudeItemizer.submitSelected",
+        "title": "Submit Selected Items…",
+        "category": "Chat Itemizer"
+      },
+      {
+        "command": "claudeItemizer.quickSubmit",
+        "title": "Quick Submit Selected Items",
+        "category": "Chat Itemizer"
+      },
+      {
+        "command": "claudeItemizer.export",
+        "title": "Export Items…",
+        "category": "Chat Itemizer"
+      },
+      {
+        "command": "claudeItemizer.import",
+        "title": "Import Items…",
+        "category": "Chat Itemizer"
+      },
+      {
+        "command": "claudeItemizer.setUpBridge",
+        "title": "Set Up Claude Bridge…",
+        "category": "Chat Itemizer"
+      },
+      {
+        "command": "claudeItemizer.removeBridge",
+        "title": "Remove Claude Bridge",
+        "category": "Chat Itemizer"
+      },
+      {
+        "command": "claudeItemizer.showLog",
+        "title": "Show Log",
+        "category": "Chat Itemizer"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "claudeItemizer.newItem",
+          "when": "view == claudeItemizer.sidebar",
+          "group": "navigation@1"
+        },
+        {
+          "command": "claudeItemizer.newCategory",
+          "when": "view == claudeItemizer.sidebar",
+          "group": "navigation@2"
+        },
+        {
+          "command": "claudeItemizer.editDefaults",
+          "when": "view == claudeItemizer.sidebar",
+          "group": "navigation@3"
+        },
+        {
+          "command": "claudeItemizer.export",
+          "when": "view == claudeItemizer.sidebar",
+          "group": "io@1"
+        },
+        {
+          "command": "claudeItemizer.import",
+          "when": "view == claudeItemizer.sidebar",
+          "group": "io@2"
+        },
+        {
+          "command": "claudeItemizer.setUpBridge",
+          "when": "view == claudeItemizer.sidebar",
+          "group": "bridge@1"
+        },
+        {
+          "command": "claudeItemizer.showLog",
+          "when": "view == claudeItemizer.sidebar",
+          "group": "bridge@2"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Claude Chat Itemizer",
+      "properties": {
+        "claudeItemizer.bridgeDirectory": {
+          "type": "string",
+          "default": "",
+          "scope": "machine",
+          "description": "Folder the extension and the itemizer-bridge plugin exchange files through. Empty: ~/.claude/itemizer/v1. If you change it, run \"Set Up Claude Bridge\" again so new Claude tabs use the same folder."
+        },
+        "claudeItemizer.newConversation.strategy": {
+          "type": "string",
+          "enum": [
+            "openAndClaim",
+            "pressEnter"
+          ],
+          "enumDescriptions": [
+            "Open a new Claude tab and send the item to it automatically. Falls back to pressEnter if the tab's session does not appear in time.",
+            "Open a new Claude tab with /itemizer-run prefilled; you press Enter to start the item."
+          ],
+          "default": "openAndClaim",
+          "description": "How \"New conversation per item\" starts each conversation."
+        },
+        "claudeItemizer.newConversation.timeoutSeconds": {
+          "type": "number",
+          "default": 25,
+          "minimum": 5,
+          "description": "How long to wait for a new Claude tab's session before falling back to press-Enter."
+        },
+        "claudeItemizer.settleMs": {
+          "type": "number",
+          "default": 800,
+          "minimum": 0,
+          "description": "Pause after Claude finishes one item before the next item of a batch is sent."
+        },
+        "claudeItemizer.allowLooseningPolicies": {
+          "type": "boolean",
+          "default": false,
+          "description": "Allow the \"Auto-accept edits\" tool policy, which lets the bridge approve file edits inside the workspace while an item runs."
+        },
+        "claudeItemizer.modelCatalogOverrides": {
+          "type": "array",
+          "default": [],
+          "description": "Extra or corrected models for the model picker: [{ \"id\": \"claude-opus-5-5[1m]\", \"label\": \"Opus 5.5 (1M)\", \"efforts\": [\"low\",\"medium\",\"high\",\"xhigh\",\"max\"] }].",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "label"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "label": {
+                "type": "string"
+              },
+              "efforts": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "low",
+                    "medium",
+                    "high",
+                    "xhigh",
+                    "max"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build": "node build.mjs",
+    "watch": "node build.mjs --watch",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p webview/tsconfig.json --noEmit",
+    "package": "node build.mjs --production && vsce package --no-dependencies --out ../../claude-chat-itemizer.vsix",
+    "smoke": "node test/smoke/run.mjs"
+  },
+  "devDependencies": {
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@types/vscode": "^1.90.0",
+    "@vscode/test-electron": "^2.5.2",
+    "@vscode/vsce": "^3.2.1",
+    "esbuild": "^0.24.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  }
+}

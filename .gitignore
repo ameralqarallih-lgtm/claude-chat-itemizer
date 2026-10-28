@@ -1,0 +1,11 @@
+*.vsix
+.vscode-test/
+dist-test/
+dist/
+node_modules/
+packages/bridge-plugin/.claude-plugin/types/
+packages/bridge-plugin/typings/
+packages/vscode-extension/CHANGELOG.md
+packages/vscode-extension/README.md
+packages/vscode-extension/bridge-plugin/
+packages/vscode-extension/docs/

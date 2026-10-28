@@ -1,0 +1,11 @@
+{
+  "name": "itemizer-bridge",
+  "version": "0.3.0",
+  "description": "Sends chat items from the Claude Chat Itemizer VS Code extension into this Claude session, with per-item model, effort and attachments.",
+  "author": {
+    "name": "Amer Alqarallih"
+  },
+  "license": "MIT",
+  "repository": "https://github.com/ameralqarallih-lgtm/claude-chat-itemizer",
+  "homepage": "https://github.com/ameralqarallih-lgtm/claude-chat-itemizer#readme"
+}
