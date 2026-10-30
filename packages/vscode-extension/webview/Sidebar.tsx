@@ -15,13 +15,14 @@ import {
 } from '@dnd-kit/core';
 import { SortableContext, arrayMove, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { type ReactNode, useEffect, useMemo, useState } from 'react';
+import { type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 
 import type { Snapshot } from '../src/shared/messages';
 import { type ChatItem, displayTitle, resolveSettings } from '../src/shared/model';
 import { RequestError, loadUiState, onOpenSubmit, request, saveUiState, send } from './api';
 import { Icon } from './icons';
 import { EFFORT_LABELS, POLICY_LABELS, itemBadge, modelChip } from './labels';
+import { InlineEdit, QuickAdd } from './InlineItem';
 import { DEFAULT_HISTORY_UI, type HistoryUi, RunHistory } from './RunHistory';
 import { SendTo } from './SendTo';
 import { SubmitDialog } from './SubmitDialog';
@@ -32,6 +33,8 @@ const CATSORT = 'catsort:'; // sortable: a category header (reorders categories)
 interface UiState {
   selected: string[];
   history: HistoryUi;
+  /** The category the quick-add box puts new items in. */
+  addTo?: string;
 }
 
 export function Sidebar({ snap }: { snap: Snapshot }) {
@@ -39,6 +42,7 @@ export function Sidebar({ snap }: { snap: Snapshot }) {
   const [ui, setUi] = useState<UiState>(() => loadUiState<UiState>({ selected: [], history: DEFAULT_HISTORY_UI }));
   const [dialog, setDialog] = useState<string[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [inlineId, setInlineId] = useState<string | null>(null);
 
   const selected = useMemo(() => new Set(ui.selected.filter(id => state.items[id])), [ui.selected, state.items]);
 
@@ -136,6 +140,9 @@ export function Sidebar({ snap }: { snap: Snapshot }) {
       )}
       <BridgeBanner snap={snap} />
       <RunHistory snap={snap} ui={ui.history ?? DEFAULT_HISTORY_UI} onUi={history => setUi(u => ({ ...u, history }))} onSelect={ids => setSelected(ids)} />
+      <div className="quick-add-wrap">
+        <QuickAdd snap={snap} categoryId={ui.addTo ?? state.categoryOrder[0] ?? ''} onCategory={addTo => setUi(u => ({ ...u, addTo }))} />
+      </div>
       <CategoryList
         snap={snap}
         selected={selected}
@@ -145,6 +152,8 @@ export function Sidebar({ snap }: { snap: Snapshot }) {
         onQuick={id => void quick([id])}
         onDelete={id => void remove([id])}
         busy={busy}
+        inlineId={inlineId}
+        onInline={setInlineId}
       />
       <Footer snap={snap} />
       {dialog && (
@@ -170,6 +179,8 @@ interface ListProps {
   onQuick: (id: string) => void;
   onDelete: (id: string) => void;
   busy: boolean;
+  inlineId: string | null;
+  onInline: (id: string | null) => void;
 }
 
 function CategoryList(props: ListProps) {
@@ -387,15 +398,35 @@ function CategorySection(props: ListProps & { categoryId: string; itemIds: strin
 
 function ItemCard(props: ListProps & { item: ChatItem }) {
   const { item, snap, selected, onToggle } = props;
-  const sortable = useSortable({ id: item.id });
+  const sortable = useSortable({ id: item.id, disabled: props.inlineId === item.id });
+  const clickTimer = useRef<number | undefined>(undefined);
+  useEffect(() => () => window.clearTimeout(clickTimer.current), []);
   const editing = snap.editorTarget?.kind === 'item' && snap.editorTarget.id === item.id;
+  if (props.inlineId === item.id) {
+    return (
+      <div ref={sortable.setNodeRef} role="listitem" className="item inline">
+        <InlineEdit snap={snap} item={item} onDone={() => props.onInline(null)} />
+      </div>
+    );
+  }
   return (
     <div
       ref={sortable.setNodeRef}
       role="listitem"
       className={`item ${editing ? 'editing' : ''} ${sortable.isDragging ? 'dragging' : ''}`}
       style={{ transform: CSS.Translate.toString(sortable.transform), transition: sortable.transition }}
-      onClick={() => send({ op: 'editor.open', target: { kind: 'item', id: item.id } })}
+      onClick={e => {
+        // Wait out a possible second click: a double-click edits here instead.
+        if (e.detail > 1) return;
+        window.clearTimeout(clickTimer.current);
+        clickTimer.current = window.setTimeout(() => send({ op: 'editor.open', target: { kind: 'item', id: item.id } }), 230);
+      }}
+      onDoubleClick={e => {
+        e.preventDefault();
+        window.clearTimeout(clickTimer.current);
+        props.onInline(item.id);
+      }}
+      title="Click to open in the editor · double-click to edit here"
     >
       <button className="icon-button grip" title="Drag to reorder" aria-label={`Reorder ${displayTitle(item)}`} {...sortable.attributes} {...sortable.listeners} onClick={e => e.stopPropagation()}>
         <Icon name="grip" size={12} />
@@ -408,7 +439,10 @@ function ItemCard(props: ListProps & { item: ChatItem }) {
         aria-label={`Select ${displayTitle(item)}`}
       />
       <ItemCardBody item={item} snap={snap} />
-      <span className="hover-actions" onClick={e => e.stopPropagation()}>
+      <span className="hover-actions" onClick={e => e.stopPropagation()} onDoubleClick={e => e.stopPropagation()}>
+        <button className="icon-button" title="Edit here" onClick={() => props.onInline(item.id)}>
+          <Icon name="edit" size={14} />
+        </button>
         <button className="icon-button" title="Quick send with the chat's current settings" disabled={props.busy} onClick={() => props.onQuick(item.id)}>
           <Icon name="bolt" size={14} />
         </button>

@@ -194,9 +194,10 @@ export class Controller implements vscode.Disposable {
         this.post(webview, { type: 'snapshot', snapshot: this.snapshot(webview) });
         return undefined;
       case 'item.create': {
-        const { state, id } = createItem(s.state, op.categoryId, now);
+        const fields = { title: op.fields?.title ?? '', text: op.fields?.text ?? '' };
+        const { state, id } = createItem(s.state, op.categoryId, now, fields);
         s.update(() => state);
-        this.openEditor({ kind: 'item', id });
+        if (op.open !== false) this.openEditor({ kind: 'item', id });
         return id;
       }
       case 'item.update':

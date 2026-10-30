@@ -2,7 +2,7 @@
   "name": "claude-chat-itemizer",
   "displayName": "Claude Chat Itemizer",
   "description": "Prepare chat items with their own attachments, model and effort, organize them, and send them into the Claude Code chat.",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "publisher": "claude-chat-itemizer",
   "private": true,
   "license": "MIT",

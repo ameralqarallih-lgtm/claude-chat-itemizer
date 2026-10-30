@@ -58,9 +58,9 @@ The Itemizer has two parts, and you install both:
 
 ### 1. Install the VS Code extension
 
-1. Download `claude-chat-itemizer-0.4.0.vsix` from the [latest release](https://github.com/ameralqarallih-lgtm/claude-chat-itemizer/releases/latest).
+1. Download `claude-chat-itemizer-0.5.0.vsix` from the [latest release](https://github.com/ameralqarallih-lgtm/claude-chat-itemizer/releases/latest).
 2. Install it, either:
-   - from the command line: `code --install-extension claude-chat-itemizer-0.4.0.vsix`
+   - from the command line: `code --install-extension claude-chat-itemizer-0.5.0.vsix`
    - or in VS Code: **Extensions** view → **⋯** menu → **Install from VSIX…** → pick the file.
 3. Reload VS Code if it asks. A **Chat Itemizer** icon appears in the activity bar.
 
@@ -100,7 +100,11 @@ Install the new VSIX the same way. When the bridge is already set up, the extens
 
 ### Write chat items
 
-- **New item:** the **＋** in the view's title bar, or the **＋** that appears when you hover over a category header. The editor opens next to your code.
+- **Quick add, in the sidebar:** click **Add an item here…** at the top of the list. Type the prompt (a title is optional), choose the category, paste screenshots or files if you want, and press **Add** or **Ctrl+Enter**. The box stays open for the next one. **Open in editor** creates the item and opens the full editor.
+- **New item in the editor window:** the **＋** in the view's title bar, or the **＋** that appears when you hover over a category header. The editor opens next to your code, with every setting.
+- **Edit in place:** click ✎ on an item, or double-click it, to change its title, prompt, model, effort and attachments right in the list. **Ctrl+Enter** saves, **Esc** cancels. A single click opens the item in the editor window as before.
+<img src="docs/images/inline-add-edit.png" alt="Quick add open at the top of the list with a prompt typed and the Auth refactor category chosen, and below it an item being edited in place with its title, prompt, model and effort, and Cancel, Open in editor and Save buttons" width="400">
+
 - **In the editor:** give the item a title (optional, shown in the list) and a prompt. Changes save as you type; **Ctrl+S** saves at once, and **Save and close** saves and closes the editor. A new item closed while still empty is discarded.
 - **In the list:** each item shows its title, the first line of its prompt, and small labels for its model, effort, attachment count and tool policy.
   - **Plain labels:** the value comes from the defaults.

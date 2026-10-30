@@ -100,6 +100,16 @@ export async function run(): Promise<void> {
     return step;
   };
 
+  // Quick add in the sidebar: the item is created with its text and the editor stays closed.
+  const tabsBefore = vscode.window.tabGroups.all.flatMap(g => g.tabs).length;
+  const quickId = (await api.controller.execute(undefined as never, {
+    op: 'item.create',
+    fields: { title: '', text: 'Inline item' },
+    open: false,
+  })) as string;
+  check(api.store.state.items[quickId]?.text === 'Inline item', 'quick add creates the item with its text');
+  check(vscode.window.tabGroups.all.flatMap(g => g.tabs).length === tabsBefore, 'quick add does not open the editor');
+
   // Two items, the first with its own model and a text attachment.
   const note = path.join(ws, 'note.txt');
   await fs.writeFile(note, 'attached words');

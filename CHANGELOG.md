@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.5.0 (2026-10-30)
+
+### Added
+- **Quick add** at the top of the item list: type a prompt (and optionally a title), pick the category, paste screenshots or files, and press **Add** or Ctrl+Enter. The item is created without leaving the sidebar. **Open in editor** creates it and opens the full editor.
+- **Inline edit:** the ✎ button on an item, or a double-click, edits its title, prompt, model, effort and attachments right in the list. Ctrl+Enter saves, Esc cancels, and **Open in editor** saves and switches to the full editor.
+
+### Unchanged
+- A single click on an item, and **＋** in the title bar or on a category, still open the item in the editor window.
+
 ## 0.4.0 (2026-10-28)
 
 ### Added

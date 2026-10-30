@@ -93,7 +93,7 @@ export type EditorTarget = { kind: 'item'; id: string } | { kind: 'category'; id
 /** Requests from a webview; the host answers each with a Response of the same id. */
 export type Op =
   | { op: 'ready' }
-  | { op: 'item.create'; categoryId?: string }
+  | { op: 'item.create'; categoryId?: string; fields?: { title?: string; text?: string }; /** false: stay in the sidebar. */ open?: boolean }
   | { op: 'item.update'; id: string; patch: ItemPatch }
   | { op: 'item.setSetting'; id: string; key: SettingKey; value: Defaults[SettingKey] | undefined }
   | { op: 'item.delete'; ids: string[] }
