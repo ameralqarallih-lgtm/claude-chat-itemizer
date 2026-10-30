@@ -22,6 +22,7 @@ import { type ChatItem, displayTitle, resolveSettings } from '../src/shared/mode
 import { RequestError, loadUiState, onOpenSubmit, request, saveUiState, send } from './api';
 import { Icon } from './icons';
 import { EFFORT_LABELS, POLICY_LABELS, itemBadge, modelChip } from './labels';
+import { ConfirmBar } from './ConfirmBar';
 import { InlineEdit, QuickAdd } from './InlineItem';
 import { DEFAULT_HISTORY_UI, type HistoryUi, RunHistory } from './RunHistory';
 import { SendTo } from './SendTo';
@@ -43,6 +44,8 @@ export function Sidebar({ snap }: { snap: Snapshot }) {
   const [dialog, setDialog] = useState<string[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [inlineId, setInlineId] = useState<string | null>(null);
+  /** What waits for an inline delete confirmation: an item id, or `cat:<id>`. */
+  const [confirming, setConfirming] = useState<string | null>(null);
 
   const selected = useMemo(() => new Set(ui.selected.filter(id => state.items[id])), [ui.selected, state.items]);
 
@@ -88,10 +91,6 @@ export function Sidebar({ snap }: { snap: Snapshot }) {
     }
   };
 
-  const remove = async (ids: string[]) => {
-    const what = ids.length === 1 ? `“${displayTitle(state.items[ids[0]!]!)}”` : `${ids.length} chat items`;
-    if (await request<boolean>({ op: 'confirm', message: `Delete ${what}?`, confirm: 'Delete' })) send({ op: 'item.delete', ids });
-  };
 
   return (
     <div className="sidebar">
@@ -150,7 +149,9 @@ export function Sidebar({ snap }: { snap: Snapshot }) {
         onToggle={toggle}
         onSelectMany={(ids, on) => setSelected(on ? [...selected, ...ids] : [...selected].filter(x => !ids.includes(x)))}
         onQuick={id => void quick([id])}
-        onDelete={id => void remove([id])}
+        onDelete={id => setConfirming(id)}
+        confirming={confirming}
+        onConfirming={setConfirming}
         busy={busy}
         inlineId={inlineId}
         onInline={setInlineId}
@@ -181,6 +182,8 @@ interface ListProps {
   busy: boolean;
   inlineId: string | null;
   onInline: (id: string | null) => void;
+  confirming: string | null;
+  onConfirming: (id: string | null) => void;
 }
 
 function CategoryList(props: ListProps) {
@@ -316,17 +319,9 @@ function CategorySection(props: ListProps & { categoryId: string; itemIds: strin
     .filter(Boolean)
     .join(', ');
 
-  const del = async () => {
-    const others = snap.state.categoryOrder.filter(c => c !== categoryId);
-    if (others.length === 0) return;
-    const moveTo = snap.state.categories[others[0]!]!;
-    const ok = await request<boolean>({
-      op: 'confirm',
-      message: all.length ? `Delete “${cat.name}”? Its ${all.length} item(s) move to “${moveTo.name}”.` : `Delete “${cat.name}”?`,
-      confirm: 'Delete',
-    });
-    if (ok) send({ op: 'category.delete', id: categoryId, moveTo: moveTo.id });
-  };
+  const others = snap.state.categoryOrder.filter(c => c !== categoryId);
+  const moveTo = others.length ? snap.state.categories[others[0]!] : undefined;
+  const confirmingThis = props.confirming === `cat:${categoryId}`;
 
   return (
     <section
@@ -370,12 +365,28 @@ function CategorySection(props: ListProps & { categoryId: string; itemIds: strin
             <Icon name="gear" size={14} />
           </button>
           {snap.state.categoryOrder.length > 1 && (
-            <button className="icon-button" title="Delete category" onClick={() => void del()}>
+            <button className="icon-button" title="Delete category" onClick={() => props.onConfirming(`cat:${categoryId}`)}>
               <Icon name="trash" size={14} />
             </button>
           )}
         </span>
       </div>
+      {confirmingThis && moveTo && (
+        <div className="confirm-wrap">
+          <ConfirmBar
+            message={
+              all.length
+                ? `Delete “${cat.name}”? Its ${all.length} item${all.length === 1 ? '' : 's'} move to “${moveTo.name}”.`
+                : `Delete “${cat.name}”?`
+            }
+            onCancel={() => props.onConfirming(null)}
+            onConfirm={() => {
+              props.onConfirming(null);
+              send({ op: 'category.delete', id: categoryId, moveTo: moveTo.id });
+            }}
+          />
+        </div>
+      )}
       {!cat.collapsed && (
         <SortableContext items={itemIds} strategy={verticalListSortingStrategy}>
           <div className="category-body">
@@ -413,11 +424,11 @@ function ItemCard(props: ListProps & { item: ChatItem }) {
     <div
       ref={sortable.setNodeRef}
       role="listitem"
-      className={`item ${editing ? 'editing' : ''} ${sortable.isDragging ? 'dragging' : ''}`}
+      className={`item ${editing ? 'editing' : ''} ${sortable.isDragging ? 'dragging' : ''} ${props.confirming === item.id ? 'confirming' : ''}`}
       style={{ transform: CSS.Translate.toString(sortable.transform), transition: sortable.transition }}
       onClick={e => {
         // Wait out a possible second click: a double-click edits here instead.
-        if (e.detail > 1) return;
+        if (e.detail > 1 || props.confirming === item.id) return;
         window.clearTimeout(clickTimer.current);
         clickTimer.current = window.setTimeout(() => send({ op: 'editor.open', target: { kind: 'item', id: item.id } }), 230);
       }}
@@ -438,7 +449,21 @@ function ItemCard(props: ListProps & { item: ChatItem }) {
         onChange={e => onToggle(item.id, e.target.checked)}
         aria-label={`Select ${displayTitle(item)}`}
       />
-      <ItemCardBody item={item} snap={snap} />
+      {props.confirming === item.id ? (
+        <div className="item-body">
+          <ItemCardBody item={item} snap={snap} />
+          <ConfirmBar
+            message="Delete this item?"
+            onCancel={() => props.onConfirming(null)}
+            onConfirm={() => {
+              props.onConfirming(null);
+              send({ op: 'item.delete', ids: [item.id] });
+            }}
+          />
+        </div>
+      ) : (
+        <ItemCardBody item={item} snap={snap} />
+      )}
       <span className="hover-actions" onClick={e => e.stopPropagation()} onDoubleClick={e => e.stopPropagation()}>
         <button className="icon-button" title="Edit here" onClick={() => props.onInline(item.id)}>
           <Icon name="edit" size={14} />

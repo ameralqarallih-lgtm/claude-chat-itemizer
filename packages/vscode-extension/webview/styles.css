@@ -975,6 +975,52 @@ input[type='checkbox']:disabled {
   white-space: nowrap;
 }
 
+/* ---------- inline confirmation ---------- */
+.confirm-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--vscode-inputValidation-errorBorder, var(--error));
+  background: var(--vscode-inputValidation-errorBackground, var(--widget));
+  cursor: default;
+}
+.confirm-bar > .icon {
+  color: var(--error);
+}
+.confirm-text {
+  flex: 1 1 150px;
+  min-width: 0;
+  font-size: 12px;
+  line-height: 1.4;
+}
+.confirm-buttons {
+  display: flex;
+  gap: 6px;
+  margin-left: auto;
+}
+.button.danger {
+  background: var(--vscode-errorForeground, #f14c4c);
+  border-color: transparent;
+  color: #fff;
+}
+.button.danger:hover {
+  filter: brightness(1.1);
+  background: var(--vscode-errorForeground, #f14c4c);
+}
+.confirm-wrap {
+  padding: 0 10px 6px 28px;
+}
+.item.confirming .hover-actions {
+  display: none !important;
+}
+.item-body .confirm-bar {
+  margin-top: 8px;
+}
+
 /* ---------- dialog ---------- */
 .scrim {
   position: fixed;

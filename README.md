@@ -58,9 +58,9 @@ The Itemizer has two parts, and you install both:
 
 ### 1. Install the VS Code extension
 
-1. Download `claude-chat-itemizer-0.5.2.vsix` from the [latest release](https://github.com/ameralqarallih-lgtm/claude-chat-itemizer/releases/latest).
+1. Download `claude-chat-itemizer-0.5.3.vsix` from the [latest release](https://github.com/ameralqarallih-lgtm/claude-chat-itemizer/releases/latest).
 2. Install it, either:
-   - from the command line: `code --install-extension claude-chat-itemizer-0.5.2.vsix`
+   - from the command line: `code --install-extension claude-chat-itemizer-0.5.3.vsix`
    - or in VS Code: **Extensions** view → **⋯** menu → **Install from VSIX…** → pick the file.
 3. Reload VS Code if it asks. A **Chat Itemizer** icon appears in the activity bar.
 
@@ -115,7 +115,7 @@ Install the new VSIX the same way. When the bridge is already set up, the extens
 
 - **Categories:** **New Category** in the title bar. Click a category's name, or the ⚙ on hover, to rename it, change its color or give it settings. Deleting a category moves its items to another one.
 - **Reorder:** drag an item by its handle (⋮⋮) within a category, or drop it on another category. Category headers drag the same way. With the keyboard, focus a handle, press Space, move with the arrow keys, and press Space again.
-- **Hover actions:** ⚡ Quick send, Duplicate, Delete.
+- **Hover actions:** ✎ Edit here, ⚡ Quick send, Duplicate, Delete. Delete asks for confirmation right in the list.
 - **Hide sent items:** the 👁 toggle hides items you've already sent. Each category says how many are hidden, with a **Show** link.
 
 ### Add attachments

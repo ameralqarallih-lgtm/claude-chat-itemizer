@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.5.3 (2026-10-30)
+
+### Changed
+- Deleting an item or a category asks for confirmation inline, in the list, instead of in a VS Code dialog. Cancel has focus, Esc cancels, and a category's confirmation says where its items will move.
+
 ## 0.5.2 (2026-10-30)
 
 ### Changed
