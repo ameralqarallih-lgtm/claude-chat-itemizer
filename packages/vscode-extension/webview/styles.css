@@ -881,6 +881,9 @@ input[type='radio'] {
 .inline-row.inline-actions {
   justify-content: flex-end;
 }
+.inline-row.inline-actions .attach {
+  padding-left: 8px;
+}
 .quick-add > .hint,
 .inline-edit > .hint {
   font-size: 11px;

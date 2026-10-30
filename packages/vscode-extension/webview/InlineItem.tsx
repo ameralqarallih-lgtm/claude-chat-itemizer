@@ -36,6 +36,7 @@ export function QuickAdd({ snap, categoryId, onCategory }: { snap: Snapshot; cat
   const [files, setFiles] = useState<PendingFile[]>([]);
   const [busy, setBusy] = useState(false);
   const area = useRef<HTMLTextAreaElement>(null);
+  const picker = useRef<HTMLInputElement>(null);
   const cats = snap.state.categoryOrder.map(id => snap.state.categories[id]!).filter(Boolean);
   const cat = snap.state.categories[categoryId] ? categoryId : cats[0]?.id;
 
@@ -93,6 +94,12 @@ export function QuickAdd({ snap, categoryId, onCategory }: { snap: Snapshot; cat
   return (
     <div
       className="quick-add"
+      onDragOver={e => e.preventDefault()}
+      onDrop={e => {
+        if (!e.dataTransfer.files.length) return;
+        e.preventDefault();
+        void addFiles(Array.from(e.dataTransfer.files));
+      }}
       onKeyDown={e => {
         if (isSubmitKey(e)) {
           e.preventDefault();
@@ -135,7 +142,21 @@ export function QuickAdd({ snap, categoryId, onCategory }: { snap: Snapshot; cat
           </option>
         ))}
       </select>
+      <input
+        ref={picker}
+        type="file"
+        multiple
+        hidden
+        onChange={e => {
+          void addFiles(Array.from(e.target.files ?? []));
+          e.target.value = '';
+        }}
+      />
       <div className="inline-row inline-actions">
+        <button className="button secondary small attach" title="Attach files" onClick={() => picker.current?.click()}>
+          <Icon name="clip" size={13} /> Attach
+        </button>
+        <span className="spacer" />
         <button className="button secondary small" title="Close (Esc)" onClick={() => (empty ? setOpen(false) : reset())}>
           {empty ? 'Close' : 'Clear'}
         </button>
@@ -146,7 +167,7 @@ export function QuickAdd({ snap, categoryId, onCategory }: { snap: Snapshot; cat
           Add
         </button>
       </div>
-      <span className="hint">Ctrl+Enter adds · Esc clears · paste to attach</span>
+      <span className="hint">Ctrl+Enter adds · Esc clears · paste or drop files to attach</span>
     </div>
   );
 }
@@ -204,6 +225,15 @@ export function InlineEdit({ snap, item, onDone }: { snap: Snapshot; item: ChatI
   return (
     <div
       className="inline-edit"
+      onDragOver={e => e.preventDefault()}
+      onDrop={e => {
+        const list = Array.from(e.dataTransfer.files);
+        if (!list.length) return;
+        e.preventDefault();
+        void (async () => {
+          for (const f of list) send({ op: 'attachment.addBytes', itemId: item.id, name: f.name, mime: f.type, base64: await readAsBase64(f) });
+        })();
+      }}
       onClick={e => e.stopPropagation()}
       onDoubleClick={e => e.stopPropagation()}
       onKeyDown={e => {
@@ -257,6 +287,10 @@ export function InlineEdit({ snap, item, onDone }: { snap: Snapshot; item: ChatI
         </select>
       </div>
       <div className="inline-row inline-actions">
+        <button className="button secondary small attach" title="Attach files" onClick={() => send({ op: 'attachment.pick', itemId: item.id })}>
+          <Icon name="clip" size={13} /> Attach
+        </button>
+        <span className="spacer" />
         <button className="button secondary small" onClick={onDone}>
           Cancel
         </button>
@@ -267,7 +301,7 @@ export function InlineEdit({ snap, item, onDone }: { snap: Snapshot; item: ChatI
           Save
         </button>
       </div>
-      <span className="hint">Ctrl+Enter saves · Esc cancels · paste to attach</span>
+      <span className="hint">Ctrl+Enter saves · Esc cancels · paste or drop files to attach</span>
       <span className="sr-only">{`Editing ${displayTitle(item)}; current model ${eff.model.value}`}</span>
     </div>
   );

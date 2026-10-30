@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.5.1 (2026-10-30)
+
+### Added
+- **Attach** button in quick add and inline edit, plus dropping files onto either box. Pasting still works.
+
 ## 0.5.0 (2026-10-30)
 
 ### Added
