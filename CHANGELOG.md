@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.5.2 (2026-10-30)
+
+### Changed
+- Checkboxes are now toggle switches: item and category selection, select all, and the Submit dialog's options. They still work with the keyboard (Tab, Space) and are announced as switches.
+
 ## 0.5.1 (2026-10-30)
 
 ### Added

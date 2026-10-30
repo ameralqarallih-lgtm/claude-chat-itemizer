@@ -99,7 +99,7 @@ export function Sidebar({ snap }: { snap: Snapshot }) {
       <div className="toolbar">
         <label className="select-all">
           <input
-            type="checkbox"
+            type="checkbox" role="switch"
             checked={allSelected}
             onChange={e => setSelected(e.target.checked ? visibleIds : [])}
             aria-label="Select all items"
@@ -350,7 +350,7 @@ function CategorySection(props: ListProps & { categoryId: string; itemIds: strin
           <Icon name="chev" size={12} />
         </button>
         <input
-          type="checkbox"
+          type="checkbox" role="switch"
           checked={allSelected}
           disabled={itemIds.length === 0}
           onChange={e => props.onSelectMany(itemIds, e.target.checked)}
@@ -432,7 +432,7 @@ function ItemCard(props: ListProps & { item: ChatItem }) {
         <Icon name="grip" size={12} />
       </button>
       <input
-        type="checkbox"
+        type="checkbox" role="switch"
         checked={selected.has(item.id)}
         onClick={e => e.stopPropagation()}
         onChange={e => onToggle(item.id, e.target.checked)}

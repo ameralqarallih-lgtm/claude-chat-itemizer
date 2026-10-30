@@ -155,13 +155,63 @@ select:focus {
   outline: 1px solid var(--focus);
   outline-offset: -1px;
 }
-input[type='checkbox'],
 input[type='radio'] {
   margin: 0;
   width: 14px;
   height: 14px;
   flex: none;
   accent-color: var(--vscode-button-background);
+}
+/* Checkboxes are drawn as switches; they stay native inputs, so Space and Tab still work. */
+input[type='checkbox'] {
+  appearance: none;
+  -webkit-appearance: none;
+  position: relative;
+  flex: none;
+  width: 26px;
+  height: 14px;
+  margin: 0;
+  border-radius: 7px;
+  background: var(--vscode-input-background, rgba(128, 128, 128, 0.25));
+  box-shadow: inset 0 0 0 1px var(--vscode-checkbox-border, var(--input-border, rgba(128, 128, 128, 0.5)));
+  cursor: pointer;
+  transition: background 0.15s, box-shadow 0.15s;
+}
+input[type='checkbox']::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--muted);
+  transition: transform 0.15s, background 0.15s;
+}
+input[type='checkbox']:checked {
+  background: var(--vscode-button-background);
+  box-shadow: inset 0 0 0 1px var(--vscode-button-background);
+}
+input[type='checkbox']:checked::after {
+  transform: translateX(12px);
+  background: var(--vscode-button-foreground, #fff);
+}
+input[type='checkbox']:hover:not(:disabled) {
+  box-shadow: inset 0 0 0 1px var(--focus);
+}
+input[type='checkbox']:focus-visible {
+  outline: 1px solid var(--focus);
+  outline-offset: 2px;
+}
+input[type='checkbox']:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+@media (prefers-reduced-motion: reduce) {
+  input[type='checkbox'],
+  input[type='checkbox']::after {
+    transition: none;
+  }
 }
 .icon {
   flex: none;
@@ -660,7 +710,7 @@ input[type='radio'] {
   border: 1px solid transparent;
 }
 .item > input[type='checkbox'] {
-  margin-top: 2px;
+  margin-top: 3px;
 }
 .item:hover {
   background: var(--hover);
@@ -1002,8 +1052,9 @@ input[type='radio'] {
 }
 .check {
   display: flex;
-  gap: 7px;
+  gap: 10px;
   align-items: center;
+  cursor: pointer;
 }
 .warnings {
   list-style: none;

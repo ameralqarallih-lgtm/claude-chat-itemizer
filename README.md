@@ -58,9 +58,9 @@ The Itemizer has two parts, and you install both:
 
 ### 1. Install the VS Code extension
 
-1. Download `claude-chat-itemizer-0.5.1.vsix` from the [latest release](https://github.com/ameralqarallih-lgtm/claude-chat-itemizer/releases/latest).
+1. Download `claude-chat-itemizer-0.5.2.vsix` from the [latest release](https://github.com/ameralqarallih-lgtm/claude-chat-itemizer/releases/latest).
 2. Install it, either:
-   - from the command line: `code --install-extension claude-chat-itemizer-0.5.1.vsix`
+   - from the command line: `code --install-extension claude-chat-itemizer-0.5.2.vsix`
    - or in VS Code: **Extensions** view → **⋯** menu → **Install from VSIX…** → pick the file.
 3. Reload VS Code if it asks. A **Chat Itemizer** icon appears in the activity bar.
 
@@ -143,7 +143,7 @@ Attachments are stored as copies in the workspace's private VS Code storage, so 
 
 ### Send them
 
-Tick the items you want, then:
+Switch on the items you want, then:
 
 - **⚡ Quick** sends them to the **Send to** chat, in list order, using **that chat's** current model and effort. Item settings are ignored; attachments are still sent. The ⚡ on a single item does the same for that item.
 - **Submit…** opens a dialog:

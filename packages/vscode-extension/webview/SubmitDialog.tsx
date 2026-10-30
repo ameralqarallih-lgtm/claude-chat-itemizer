@@ -161,22 +161,22 @@ export function SubmitDialog({ snap, itemIds, onClose, onSubmitted }: { snap: Sn
             </div>
           ) : (
             <label className="check">
-              <input type="checkbox" checked={prefill} onChange={e => setTarget(e.target.checked ? 'prefill' : 'newTab')} />
+              <input type="checkbox" role="switch" checked={prefill} onChange={e => setTarget(e.target.checked ? 'prefill' : 'newTab')} />
               Prefill only (text, no settings or attachments)
             </label>
           )}
 
           <div className="checks">
             <label className="check">
-              <input type="checkbox" checked={options.stopOnError} onChange={e => set({ stopOnError: e.target.checked })} />
+              <input type="checkbox" role="switch" checked={options.stopOnError} onChange={e => set({ stopOnError: e.target.checked })} />
               Stop on first failure
             </label>
             <label className="check">
-              <input type="checkbox" checked={options.titleAsHeading} onChange={e => set({ titleAsHeading: e.target.checked })} />
+              <input type="checkbox" role="switch" checked={options.titleAsHeading} onChange={e => set({ titleAsHeading: e.target.checked })} />
               Send the title as a heading
             </label>
             <label className="check">
-              <input type="checkbox" checked={options.hideAfter} onChange={e => set({ hideAfter: e.target.checked })} />
+              <input type="checkbox" role="switch" checked={options.hideAfter} onChange={e => set({ hideAfter: e.target.checked })} />
               Hide items after they're sent
             </label>
           </div>
